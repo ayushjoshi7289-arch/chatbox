@@ -1,6 +1,6 @@
 // client/src/pages/Profile.jsx
 import React, { useRef, useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { 
@@ -70,7 +70,7 @@ export default function Profile() {
           return newSet;
         });
       }, 2000);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy to clipboard");
     }
   };
@@ -163,6 +163,13 @@ export default function Profile() {
                       >
                         <ImageIcon size={14} />
                       </button>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={onAvatarChange}
+                      />
                     </div>
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{user?.displayName || user?.username}</h2>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">{user?.username}</p>

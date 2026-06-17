@@ -1,7 +1,7 @@
 // client/src/pages/Chatroom.jsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import io from "socket.io-client";
 import { ImagePlus, Send, Video, VideoOff } from "lucide-react";
 import toast from "react-hot-toast";
@@ -404,7 +404,7 @@ export default function ChatRoom() {
       typingTimerRef.current = setTimeout(() => setTypingUsers([]), 1200);
     });
 
-    socket.on("video-offer", async ({ fromUsername, fromSocketId, offer }) => {
+    socket.on("video-offer", async ({ fromSocketId, offer }) => {
       try {
         if (!peerConnectionRef.current) {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -473,6 +473,7 @@ export default function ChatRoom() {
     });
 
     return () => {
+      socket.off("room-settings");
       socket.off("room-members");
       socket.off("group-key");
       socket.off("chat-history");

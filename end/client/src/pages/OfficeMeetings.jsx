@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import api from "../api";
 import toast from "react-hot-toast";
 import { Calendar, Users, PlusCircle, Clock3, Check, X, Shield, ArrowRight } from "lucide-react";

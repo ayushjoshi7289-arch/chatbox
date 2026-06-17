@@ -1,7 +1,7 @@
 // client/src/components/Topbar.jsx
 import React, { useEffect, useState } from "react";
 import { Bell, Search, Sun, Moon, Menu, Home, MessageSquare, Users, Settings, User as UserIcon } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import { Link, useLocation } from "react-router-dom";
 
 export default function Topbar() {

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { UserPlus, Check, XCircle, Search, Users as UsersIcon, Sparkles, MessageSquare, Clock3 } from "lucide-react";

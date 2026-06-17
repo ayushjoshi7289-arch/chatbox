@@ -4,7 +4,7 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ChatRoom from "./pages/ChatRoom";
+import ChatRoom from "./pages/Chatroom";
 import Settings from "./pages/Settings"; // 👈 Add this page
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute"; // 👈 Import wrapper

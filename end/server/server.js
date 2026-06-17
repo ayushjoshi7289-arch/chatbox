@@ -14,7 +14,7 @@ const path = require("path");
 const User = require("./models/User");
 const Room = require("./models/Room");
 const Message = require("./models/Message");
-const { db } = require("./db");
+const { db, run, get, all } = require("./db");
 
 // Passport config
 const initializePassport = require("./auth/passport-config");
@@ -379,13 +379,17 @@ app.post("/api/friends/request", async (req, res) => {
   try {
     const toUser = await User.findOne({ username: toUsername });
     if (!toUser) return res.status(404).json({ success: false, message: "User not found" });
-    if (toUser._id.equals(req.user._id)) return res.status(400).json({ success: false, message: "You can't add yourself" });
+    if (toUser._id === req.user._id) return res.status(400).json({ success: false, message: "You can't add yourself" });
 
-    if (toUser.friendRequests?.some((r) => r.from.equals(req.user._id) && r.status === "pending"))
+    if (toUser.friendRequests?.some((r) => r.from === req.user._id && r.status === "pending"))
       return res.status(400).json({ success: false, message: "Already requested" });
 
     toUser.friendRequests = toUser.friendRequests || [];
-    toUser.friendRequests.push({ from: req.user._id });
+    toUser.friendRequests.push({
+      _id: `fr-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      from: req.user._id,
+      status: "pending",
+    });
     await toUser.save();
     res.json({ success: true, message: "Friend request sent" });
   } catch (err) {
@@ -479,7 +483,7 @@ app.post("/api/office/sessions/schedule", async (req, res) => {
 
     const parsedParticipants = Array.isArray(participants) ? participants : [];
 
-    const result = db.run(
+    const result = run(
       `INSERT INTO officeSessions (roomId, eventsSummary, participants, startedAt) VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
       [
         `OFFICE-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -499,12 +503,7 @@ app.get("/api/office/sessions/upcoming", async (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ success: false, message: "Unauthorized" });
   try {
     const now = new Date().toISOString();
-    
-    const { all } = require("./db");
-
-    const sessions = all(
-      "SELECT * FROM officeSessions ..."
-    );
+    const rows = all("SELECT * FROM officeSessions ORDER BY startedAt ASC");
 
     const sessions = (rows || []).map((r) => {
       let summary = {};
@@ -534,7 +533,7 @@ app.post("/api/office/sessions/:id/join", async (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ success: false, message: "Unauthorized" });
   const id = Number(req.params.id);
   try {
-    const row = db.get(`SELECT * FROM officeSessions WHERE id = ?`, [id]);
+    const row = get(`SELECT * FROM officeSessions WHERE id = ?`, [id]);
     if (!row) return res.status(404).json({ success: false, message: "Session not found" });
 
     let participants = [];
@@ -542,7 +541,7 @@ app.post("/api/office/sessions/:id/join", async (req, res) => {
 
     if (!participants.includes(req.user.username)) participants.push(req.user.username);
 
-    db.run(`UPDATE officeSessions SET participants = ? WHERE id = ?`, [JSON.stringify(participants), id]);
+    run(`UPDATE officeSessions SET participants = ? WHERE id = ?`, [JSON.stringify(participants), id]);
 
     return res.json({ success: true });
   } catch (err) {

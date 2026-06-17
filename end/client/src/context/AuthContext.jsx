@@ -1,6 +1,6 @@
 // client/src/context/AuthContext.jsx
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../api";
 import AuthContextInternal from "./AuthContextInternal";
 
@@ -88,7 +88,9 @@ export function AuthProvider({ children }) {
       { withCredentials: true }
     );
 
-    setUser(res.data?.user || null);
+    if (res.data?.success) {
+      await fetchMe();
+    }
   };
 
   return (
@@ -106,6 +108,3 @@ export function AuthProvider({ children }) {
     </AuthContextInternal.Provider>
   );
 }
-
-// Hook used throughout the app
-export const useAuth = () => useContext(AuthContextInternal);

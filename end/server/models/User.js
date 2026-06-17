@@ -12,6 +12,37 @@ function serializeJson(value) {
   return JSON.stringify(value || []);
 }
 
+function populateFriends(friendIds) {
+  return (Array.isArray(friendIds) ? friendIds : [])
+    .map((fid) => {
+      const friend = toUserRecord(get("SELECT * FROM users WHERE id = ?", [fid]));
+      if (!friend) return null;
+      return {
+        _id: friend._id,
+        username: friend.username,
+        displayName: friend.displayName || friend.username,
+        online: false,
+      };
+    })
+    .filter(Boolean);
+}
+
+function populateFriendRequests(requests) {
+  return (Array.isArray(requests) ? requests : []).map((request) => {
+    const fromUser = toUserRecord(get("SELECT * FROM users WHERE id = ?", [request.from]));
+    return {
+      ...request,
+      from: fromUser
+        ? {
+            _id: fromUser._id,
+            username: fromUser.username,
+            displayName: fromUser.displayName || fromUser.username,
+          }
+        : null,
+    };
+  });
+}
+
 function toUserRecord(row) {
   if (!row) return null;
 
@@ -57,7 +88,6 @@ function toUserRecord(row) {
     updatedAt: row.updatedAt,
   };
 
-
   record.select = function (fields = "") {
     if (!fields || fields === "-password") {
       const { password, ...rest } = record;
@@ -66,7 +96,12 @@ function toUserRecord(row) {
     return record;
   };
 
-  record.populate = function () {
+  record.populate = function (field) {
+    if (field === "friends") {
+      record.friends = populateFriends(record.friends);
+    } else if (field === "friendRequests.from") {
+      record.friendRequests = populateFriendRequests(record.friendRequests);
+    }
     return record;
   };
 
@@ -99,7 +134,6 @@ function toUserRecord(row) {
     return record;
   };
 
-
   return record;
 }
 
@@ -124,10 +158,28 @@ module.exports = {
     const next = { ...current, ...updates };
     if (updates.friends) next.friends = updates.friends;
     if (updates.friendRequests) next.friendRequests = updates.friendRequests;
+    if (updates.officeProfileJson) next.officeProfileJson = updates.officeProfileJson;
+    if (updates.casualProfileJson) next.casualProfileJson = updates.casualProfileJson;
 
     run(
-      `UPDATE users SET username = ?, password = ?, displayName = ?, bio = ?, avatarUrl = ?, friends = ?, friendRequests = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
-      [next.username, next.password, next.displayName, next.bio, next.avatarUrl, serializeJson(next.friends), serializeJson(next.friendRequests), id]
+      `UPDATE users SET username = ?, password = ?, displayName = ?, bio = ?, avatarUrl = ?,
+        allowedProfiles = ?, activeProfile = ?, officeProfileJson = ?, casualProfileJson = ?, linkingMode = ?,
+        friends = ?, friendRequests = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
+      [
+        next.username,
+        next.password,
+        next.displayName,
+        next.bio,
+        next.avatarUrl,
+        serializeJson(next.allowedProfiles),
+        next.activeProfile,
+        serializeJson(next.officeProfileJson),
+        serializeJson(next.casualProfileJson),
+        next.linkingMode,
+        serializeJson(next.friends),
+        serializeJson(next.friendRequests),
+        id,
+      ]
     );
 
     return toUserRecord(get("SELECT * FROM users WHERE id = ?", [id]));
@@ -135,8 +187,25 @@ module.exports = {
 
   async create(data) {
     const result = run(
-      `INSERT INTO users (username, password, displayName, bio, avatarUrl, friends, friendRequests) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [data.username, data.password, data.displayName || "", data.bio || "", data.avatarUrl || "", serializeJson(data.friends || []), serializeJson(data.friendRequests || [])]
+      `INSERT INTO users (
+        username, password, displayName, bio, avatarUrl,
+        allowedProfiles, activeProfile, officeProfileJson, casualProfileJson, linkingMode,
+        friends, friendRequests
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        data.username,
+        data.password,
+        data.displayName || "",
+        data.bio || "",
+        data.avatarUrl || "",
+        serializeJson(data.allowedProfiles || ["casual", "office"]),
+        data.activeProfile || "casual",
+        serializeJson(data.officeProfileJson || {}),
+        serializeJson(data.casualProfileJson || {}),
+        data.linkingMode || "none",
+        serializeJson(data.friends || []),
+        serializeJson(data.friendRequests || []),
+      ]
     );
     return toUserRecord(get("SELECT * FROM users WHERE id = ?", [result.lastInsertRowid]));
   },

@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import api from "../api";
@@ -100,7 +100,7 @@ export default function Dashboard() {
       } else {
         toast.error("Wrong password!");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to join room");
     }
   };
@@ -111,7 +111,7 @@ export default function Dashboard() {
       setJoinModalOpen(false);
       toast.success(`🎉 Joining ${roomCode}!`);
       navigate(`/chat/${roomCode}`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to join room");
     }
   };

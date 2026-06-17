@@ -30,8 +30,14 @@ module.exports.find = function (filter = {}) {
   let rows = all("SELECT * FROM messages");
 
   if (filter.roomId) rows = rows.filter((row) => row.roomId === filter.roomId);
+
   return {
-    sort() {
+    sort(spec = { createdAt: 1 }) {
+      if (spec?.createdAt === 1) {
+        rows = [...rows].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      } else if (spec?.createdAt === -1) {
+        rows = [...rows].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
       return this;
     },
     lean() {

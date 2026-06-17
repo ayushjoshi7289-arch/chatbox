@@ -1,6 +1,6 @@
 // client/src/pages/Settings.jsx
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../context/useAuth";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { 
@@ -51,7 +51,7 @@ export default function Settings() {
           return newSet;
         });
       }, 2000);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy to clipboard");
     }
   };
@@ -194,7 +194,9 @@ export default function Settings() {
                         { value: 'light', icon: Sun, label: 'Light' },
                         { value: 'dark', icon: Moon, label: 'Dark' },
                         { value: 'system', icon: Monitor, label: 'System' }
-                      ].map(({ value, icon: Icon, label }) => (
+                      ].map(({ value, icon, label }) => {
+                        const Icon = icon;
+                        return (
                         <button
                           key={value}
                           onClick={() => handleThemeChange(value)}
@@ -209,7 +211,8 @@ export default function Settings() {
                             {label}
                           </span>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
