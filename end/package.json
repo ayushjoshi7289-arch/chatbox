@@ -1,0 +1,17 @@
+{
+  "name": "chatbox-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "client": "npm run dev --prefix client",
+    "server": "nodemon server.js --prefix server",
+    "dev": "concurrently \"npm run client\" \"npm run server\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "connect-mongo": "^5.1.0"
+  }
+}
